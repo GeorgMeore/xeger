@@ -75,7 +75,7 @@ begin
 	node^.count := 0
 end;
 
-procedure NewStrNode(var node: NodePtr; var str: string);
+procedure NewStrNode(var node: NodePtr; str: string);
 begin
 	new(node);
 	node^.kind := StrNode;
@@ -143,7 +143,20 @@ begin
 	NewStrNode(result, str)
 end;
 
-{ SIMPLE ::= GROUP | STRING }
+{ ESCAPED ::= '\' ANY }
+procedure ParseEscaped(var iter: CharIterator; var result: NodePtr);
+begin
+	CharIteratorNext(iter);
+	if CharIteratorPeek(iter) = #0 then
+	begin
+		NewErrorNode(result, 'any character', 'EOL');
+		exit
+	end;
+	NewStrNode(result, CharIteratorPeek(iter));
+	CharIteratorNext(iter)
+end;
+
+{ SIMPLE ::= GROUP | STRING | ESCAPED }
 procedure ParseSimple(var iter: CharIterator; var result: NodePtr);
 var
 	next: char;
@@ -151,10 +164,12 @@ begin
 	next := CharIteratorPeek(iter);
 	if next = '(' then
 		ParseGroup(iter, result)
+	else if next = '\' then
+		ParseEscaped(iter, result)
 	else if IsAlnum(next) then
 		ParseStr(iter, result)
 	else
-		NewErrorNode(result, 'digit or letter or (', CharIteratorPeek(iter))
+		NewErrorNode(result, 'digit or letter or ( or \', CharIteratorPeek(iter))
 end;
 
 function IsQuantChar(c: char): boolean;
@@ -198,7 +213,7 @@ end;
 
 function IsTermChar(c: char): boolean;
 begin
-	IsTermChar := IsAlnum(c) or (c = '(')
+	IsTermChar := IsAlnum(c) or (c = '(') or (c = '\')
 end;
 
 { CONCATENATION ::= TERM {TERM} }
