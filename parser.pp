@@ -8,7 +8,7 @@ const
 	WordMax = 1 shl 16 - 1;
 
 type
-	NodeType = (ErrorNode, AltNode, ConcatNode, StrNode, QuantNode);
+	NodeType = (ErrorNode, AltNode, ConcatNode, CharNode, QuantNode);
 	NodePtr = ^Node;
 	Node = record
 		case kind: NodeType of
@@ -19,8 +19,8 @@ type
 				count: integer;
 				nodes: array [1..MaxNodes] of NodePtr;
 			);
-			StrNode: (
-				str: string;
+			CharNode: (
+				ch: char;
 			);
 			QuantNode: (
 				node: NodePtr;
@@ -78,11 +78,11 @@ begin
 	node^.count := 0
 end;
 
-procedure NewStrNode(var node: NodePtr; str: string);
+procedure NewCharNode(var node: NodePtr; ch: char);
 begin
 	new(node);
-	node^.kind := StrNode;
-	node^.str := str
+	node^.kind := CharNode;
+	node^.ch := ch
 end;
 
 procedure NewQuantNode(var node: NodePtr; min, max: word);
@@ -118,7 +118,7 @@ function IsNonspecial(c: char): boolean;
 begin
 	IsNonspecial := not (
 		IsQuantChar(c) or IsTermSpecialChar(c) or
-		(c = #0) or (c = ')') or (c = '}')
+		(c = #0) or (c = ')') or (c = '}') or (c = '|')
 	);
 end;
 
@@ -144,17 +144,11 @@ begin
 	CharIteratorNext(iter)
 end;
 
-{ STRING ::= NONSPECIAL+ }
-procedure ParseStr(var iter: CharIterator; var result: NodePtr);
-var
-	str: string = '';
+{ CHAR ::= NONSPECIAL }
+procedure ParseChar(var iter: CharIterator; var result: NodePtr);
 begin
-	while IsNonspecial(CharIteratorPeek(iter)) do
-	begin
-		str := str + CharIteratorPeek(iter);
-		CharIteratorNext(iter)
-	end;
-	NewStrNode(result, str)
+	NewCharNode(result, CharIteratorPeek(iter));
+	CharIteratorNext(iter)
 end;
 
 { ESCAPED ::= '\' ANY }
@@ -166,7 +160,7 @@ begin
 		NewErrorNode(result, 'any character', #0);
 		exit
 	end;
-	NewStrNode(result, CharIteratorPeek(iter));
+	NewCharNode(result, CharIteratorPeek(iter));
 	CharIteratorNext(iter)
 end;
 
@@ -181,7 +175,7 @@ begin
 	else if next = '\' then
 		ParseEscaped(iter, result)
 	else if IsNonspecial(next) then
-		ParseStr(iter, result)
+		ParseChar(iter, result)
 	else
 		NewErrorNode(result, 'digit or letter or ( or \', CharIteratorPeek(iter))
 end;

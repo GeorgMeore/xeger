@@ -13,8 +13,8 @@ var
 	i: word;
 begin
 	case regex^.kind of
-		StrNode:
-			write(regex^.str);
+		CharNode:
+			write(regex^.ch);
 		AltNode:
 			GenerateChars(regex^.nodes[1 + random(regex^.count)]);
 		ConcatNode:
