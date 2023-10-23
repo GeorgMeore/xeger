@@ -61,11 +61,14 @@ begin
 	iter.i := iter.i + 1
 end;
 
-procedure NewErrorNode(var node: NodePtr; wanted, got: string);
+procedure NewErrorNode(var node: NodePtr; wanted: string; got: char);
 begin
 	new(node);
 	node^.kind := ErrorNode;
-	node^.message := 'wanted ''' + wanted + ''', got ''' + got + ''''
+	if got = #0 then
+		node^.message := 'wanted ''' + wanted + ''', got ''EOL'''
+	else
+		node^.message := 'wanted ''' + wanted + ''', got ''' + got + ''''
 end;
 
 procedure NewArrayNode(var node: NodePtr; kind: NodeType);
@@ -149,7 +152,7 @@ begin
 	CharIteratorNext(iter);
 	if CharIteratorPeek(iter) = #0 then
 	begin
-		NewErrorNode(result, 'any character', 'EOL');
+		NewErrorNode(result, 'any character', #0);
 		exit
 	end;
 	NewStrNode(result, CharIteratorPeek(iter));
