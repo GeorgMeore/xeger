@@ -104,16 +104,27 @@ begin
 	IsNumeric := (c >= '0') and (c <= '9')
 end;
 
-function IsAlpha(c: char): boolean;
+function IsQuantChar(c: char): boolean;
 begin
-	IsAlpha :=
-		(c >= 'a') and (c <= 'z') or
-		(c >= 'A') and (c <= 'Z')
+	IsQuantChar := (c = '?') or (c = '*') or (c = '+') or (c = '{')
 end;
 
-function IsAlnum(c: char): boolean;
+function IsTermSpecialChar(c: char): boolean;
 begin
-	IsAlnum := IsAlpha(c) or IsNumeric(c)
+	IsTermSpecialChar := (c = '(') or (c = '\')
+end;
+
+function IsNonspecial(c: char): boolean;
+begin
+	IsNonspecial := not (
+		IsQuantChar(c) or IsTermSpecialChar(c) or
+		(c = #0) or (c = ')') or (c = '}')
+	);
+end;
+
+function IsTermChar(c: char): boolean;
+begin
+	IsTermChar := IsTermSpecialChar(c) or IsNonspecial(c)
 end;
 
 procedure ParseAlternative(var iter: CharIterator; var result: NodePtr); forward;
@@ -133,12 +144,12 @@ begin
 	CharIteratorNext(iter)
 end;
 
-{ STRING ::= ALNUM+ }
+{ STRING ::= NONSPECIAL+ }
 procedure ParseStr(var iter: CharIterator; var result: NodePtr);
 var
 	str: string = '';
 begin
-	while IsAlnum(CharIteratorPeek(iter)) do
+	while IsNonspecial(CharIteratorPeek(iter)) do
 	begin
 		str := str + CharIteratorPeek(iter);
 		CharIteratorNext(iter)
@@ -169,15 +180,10 @@ begin
 		ParseGroup(iter, result)
 	else if next = '\' then
 		ParseEscaped(iter, result)
-	else if IsAlnum(next) then
+	else if IsNonspecial(next) then
 		ParseStr(iter, result)
 	else
 		NewErrorNode(result, 'digit or letter or ( or \', CharIteratorPeek(iter))
-end;
-
-function IsQuantChar(c: char): boolean;
-begin
-	IsQuantChar := (c = '?') or (c = '*') or (c = '+') or (c = '{')
 end;
 
 { NUMBER ::= DIGIT+ }
@@ -253,11 +259,6 @@ begin
 	if IsErrorNode(result) then
 		exit;
 	result^.node := tmp
-end;
-
-function IsTermChar(c: char): boolean;
-begin
-	IsTermChar := IsAlnum(c) or (c = '(') or (c = '\')
 end;
 
 { CONCATENATION ::= TERM {TERM} }
