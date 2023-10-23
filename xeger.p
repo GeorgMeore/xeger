@@ -4,7 +4,6 @@ uses parser, generator;
 
 var
 	regex: NodePtr = nil;
-	str: AnsiString = '';
 	count: integer = 1;
 	ok: word = 0;
 begin
@@ -29,9 +28,7 @@ begin
 	randomize;
 	while count > 0 do
 	begin
-		Generate(regex, str);
-		writeln(str);
-		str := '';
+		GenerateLine(regex);
 		count := count - 1
 	end
 end.

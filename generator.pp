@@ -4,44 +4,32 @@ interface
 
 uses parser;
 
-procedure Generate(regex: NodePtr; var str: AnsiString);
+procedure GenerateLine(regex: NodePtr);
 
 implementation
 
-procedure GenerateAlt(alt: NodePtr; var str: AnsiString);
-begin
-	Generate(alt^.nodes[1 + random(alt^.count)], str)
-end;
-
-procedure GenerateConcat(concat: NodePtr; var str: AnsiString);
+procedure GenerateChars(regex: NodePtr);
 var
-	i: integer;
-begin
-	for i := 1 to concat^.count do
-		Generate(concat^.nodes[i], str)
-end;
-
-procedure GenerateQuant(quant: NodePtr; var str: AnsiString);
-var
-	i, count: word;
-begin
-	count := quant^.min + random(quant^.max - quant^.min + 1);
-	for i := 1 to count do
-		Generate(quant^.node, str)
-end;
-
-procedure Generate(regex: NodePtr; var str: AnsiString);
+	i: word;
 begin
 	case regex^.kind of
 		StrNode:
-			str := str + regex^.str;
+			write(regex^.str);
 		AltNode:
-			GenerateAlt(regex, str);
+			GenerateChars(regex^.nodes[1 + random(regex^.count)]);
 		ConcatNode:
-			GenerateConcat(regex, str);
+			for i := 1 to regex^.count do
+				GenerateChars(regex^.nodes[i]);
 		QuantNode:
-			GenerateQuant(regex, str)
+			for i := 1 to regex^.min + random(regex^.max - regex^.min + 1) do
+				GenerateChars(regex^.node)
 	end
+end;
+
+procedure GenerateLine(regex: NodePtr);
+begin
+	GenerateChars(regex);
+	writeln()
 end;
 
 end.
