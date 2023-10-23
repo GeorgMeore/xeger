@@ -177,10 +177,49 @@ end;
 
 function IsQuantChar(c: char): boolean;
 begin
-	IsQuantChar := (c = '?') or (c = '*') or (c = '+')
+	IsQuantChar := (c = '?') or (c = '*') or (c = '+') or (c = '{')
 end;
 
-{ QUANTIFIER ::= '?' | '*' | '+' }
+{ NUMBER ::= DIGIT+ }
+procedure ParseNumber(var iter: CharIterator; var result: word);
+var
+	digit: word;
+begin
+	if not IsNumeric(CharIteratorPeek(iter)) then
+		exit;
+	result := 0;
+	while IsNumeric(CharIteratorPeek(iter)) do
+	begin
+		digit := ord(CharIteratorPeek(iter)) - ord('0');
+		CharIteratorNext(iter);
+		result := result*10 + digit
+	end
+end;
+
+{ RANGE ::= '{' [NUMBER] ',' [NUMBER] '}' }
+procedure ParseRange(var iter: CharIterator; var result: NodePtr);
+var
+	min: word = 0;
+	max: word = WordMax;
+begin
+	CharIteratorNext(iter);
+	ParseNumber(iter, min);
+	if CharIteratorPeek(iter) <> ',' then
+	begin
+		NewErrorNode(result, ',', CharIteratorPeek(iter));
+		exit
+	end;
+	CharIteratorNext(iter);
+	ParseNumber(iter, max);
+	if CharIteratorPeek(iter) <> '}' then
+	begin
+		NewErrorNode(result, '}', CharIteratorPeek(iter));
+		exit
+	end;
+	NewQuantNode(result, min, max)
+end;
+
+{ QUANTIFIER ::= '?' | '*' | '+' | RANGE }
 procedure ParseQuant(var iter: CharIterator; var result: NodePtr);
 var
 	next: char;
@@ -192,7 +231,9 @@ begin
 		'*':
 			NewQuantNode(result, 0, WordMax);
 		'+':
-			NewQuantNode(result, 1, WordMax)
+			NewQuantNode(result, 1, WordMax);
+		'{':
+			ParseRange(iter, result)
 	end;
 	CharIteratorNext(iter)
 end;
