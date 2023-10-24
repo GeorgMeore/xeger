@@ -16,7 +16,7 @@ begin
 		val(ParamStr(2), count, ok);
 	if ok <> 0 then
 	begin
-		writeln('error: invalid count: ', ParamStr(2));
+		writeln('error: failed to parse the count: ', ParamStr(2));
 		halt(1)
 	end;
 	Parse(ParamStr(1), regex);
