@@ -177,7 +177,7 @@ begin
 	else if IsNonspecial(next) then
 		ParseChar(iter, result)
 	else
-		NewErrorNode(result, 'digit or letter or ( or \', CharIteratorPeek(iter))
+		NewErrorNode(result, 'nonspecial or ( or \', CharIteratorPeek(iter))
 end;
 
 { NUMBER ::= DIGIT+ }
@@ -216,6 +216,7 @@ begin
 		NewErrorNode(result, '}', CharIteratorPeek(iter));
 		exit
 	end;
+	CharIteratorNext(iter);
 	NewQuantNode(result, min, max)
 end;
 
@@ -225,6 +226,11 @@ var
 	next: char;
 begin
 	next := CharIteratorPeek(iter);
+	if next = '{' then
+	begin
+		ParseRange(iter, result);
+		exit
+	end;
 	case next of
 		'?':
 			NewQuantNode(result, 0, 1);
@@ -232,8 +238,6 @@ begin
 			NewQuantNode(result, 0, WordMax);
 		'+':
 			NewQuantNode(result, 1, WordMax);
-		'{':
-			ParseRange(iter, result)
 	end;
 	CharIteratorNext(iter)
 end;
