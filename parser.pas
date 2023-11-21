@@ -129,7 +129,7 @@ end;
 
 procedure ParseAlternative(var iter: CharIterator; var result: NodePtr); forward;
 
-{ GROUP ::= '(' ALTERNATIVE ')' }
+(* GROUP ::= '(' ALTERNATIVE ')' *)
 procedure ParseGroup(var iter: CharIterator; var result: NodePtr);
 begin
 	CharIteratorNext(iter);
@@ -144,14 +144,14 @@ begin
 	CharIteratorNext(iter)
 end;
 
-{ CHAR ::= NONSPECIAL }
+(* CHAR ::= NONSPECIAL *)
 procedure ParseChar(var iter: CharIterator; var result: NodePtr);
 begin
 	NewCharNode(result, CharIteratorPeek(iter));
 	CharIteratorNext(iter)
 end;
 
-{ ESCAPED ::= '\' ANY }
+(* ESCAPED ::= '\' ANY *)
 procedure ParseEscaped(var iter: CharIterator; var result: NodePtr);
 begin
 	CharIteratorNext(iter);
@@ -164,7 +164,7 @@ begin
 	CharIteratorNext(iter)
 end;
 
-{ SIMPLE ::= GROUP | STRING | ESCAPED }
+(* SIMPLE ::= GROUP | STRING | ESCAPED *)
 procedure ParseSimple(var iter: CharIterator; var result: NodePtr);
 var
 	next: char;
@@ -180,7 +180,7 @@ begin
 		NewErrorNode(result, 'nonspecial or ( or \', CharIteratorPeek(iter))
 end;
 
-{ NUMBER ::= DIGIT+ }
+(* NUMBER ::= DIGIT+ *)
 procedure ParseNumber(var iter: CharIterator; var result: word);
 var
 	digit: word;
@@ -196,7 +196,7 @@ begin
 	end
 end;
 
-{ RANGE ::= '{' [NUMBER] ',' [NUMBER] '}' }
+(* RANGE ::= '{' [NUMBER] ',' [NUMBER] '}' *)
 procedure ParseRange(var iter: CharIterator; var result: NodePtr);
 var
 	min: word = 0;
@@ -220,7 +220,7 @@ begin
 	NewQuantNode(result, min, max)
 end;
 
-{ QUANTIFIER ::= '?' | '*' | '+' | RANGE }
+(* QUANTIFIER ::= '?' | '*' | '+' | RANGE *)
 procedure ParseQuant(var iter: CharIterator; var result: NodePtr);
 var
 	next: char;
@@ -242,7 +242,7 @@ begin
 	CharIteratorNext(iter)
 end;
 
-{ TERM ::= SIMPLE [QUANTIFIER] }
+(* TERM ::= SIMPLE [QUANTIFIER] *)
 procedure ParseTerm(var iter: CharIterator; var result: NodePtr);
 var
 	tmp: NodePtr;
@@ -259,7 +259,7 @@ begin
 	result^.node := tmp
 end;
 
-{ CONCATENATION ::= TERM {TERM} }
+(* CONCATENATION ::= TERM {TERM} *)
 procedure ParseConcatenation(var iter: CharIterator; var result: NodePtr);
 var
 	tmp: NodePtr;
@@ -284,7 +284,7 @@ begin
 	end
 end;
 
-{ ALTERNATIVE ::= CONCATENATION {'|' CONCATENATION} }
+(* ALTERNATIVE ::= CONCATENATION {'|' CONCATENATION} *)
 procedure ParseAlternative(var iter: CharIterator; var result: NodePtr);
 var
 	tmp: NodePtr;
@@ -315,7 +315,7 @@ begin
 	IsErrorNode := node^.kind = ErrorNode
 end;
 
-{ REGEX ::= ALTERNATIVE #0 }
+(* REGEX ::= ALTERNATIVE #0 *)
 procedure Parse(regex: string; var result: NodePtr);
 var
 	iter: CharIterator;
