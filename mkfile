@@ -1,9 +1,9 @@
-MODSRC=parser.pp generator.pp
-MODOBJ=${MODSRC:%.pp=%.o}
-MODPPU=${MODSRC:%.pp=%.ppu}
+MODSRC=parser.pas generator.pas
+MODOBJ=${MODSRC:%.pas=%.o}
+MODPPU=${MODSRC:%.pas=%.ppu}
 
-xeger: xeger.p $MODSRC
-	fpc -vwn xeger.p
+xeger: xeger.pas $MODSRC
+	fpc -vwn xeger.pas
 
 test:VQ: xeger
 	for testfile in test/*.in; do
